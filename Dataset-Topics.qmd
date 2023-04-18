@@ -1,23 +1,22 @@
 ---
-author: "Your Name"
+author: "Ethan Peterson"
 date: "2023-04-18"
 title: "Project Dataset and Topics"
 output: html
 categories: project
 ---
 
-[Link to dataset]()
+[Link to dataset](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-03-03/readme.md)
 
-Things you plan to investigate using this dataset:
+Things you plan to investigate using this data set:
 
-- Thing 1
-- Thing 2
-- Thing 3
+- Is there a certain game or group of games (every 10) that see an uptick in goals?
+- Does a certain position score more power-play goals vs regular goals vs shorthand goals?
+- What age group has the most xth-goal seasons (30/40/50/60, etc)?
 
 Stat 251 topics you plan to cover during the analysis:
 
-1. Topic 1
-2. Topic 2
-3. Topic 3
-4. Topic 4
-
+1. Mutating/filtering data sets
+2. Creating good charts
+3. Exploratory data analysis (box plots/regression etc)
+4. Working with strings
