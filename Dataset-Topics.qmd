@@ -20,3 +20,7 @@ Stat 251 topics you plan to cover during the analysis:
 2. Creating good charts
 3. Exploratory data analysis (box plots/regression etc)
 4. Working with strings
+
+
+
+(2023-04-19 - This looks good. What strings are you planning to work with? - Dr. V)
