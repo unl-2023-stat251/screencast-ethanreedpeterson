@@ -1,8 +1,84 @@
 ---
-author: "Your Name"
-date: "2023-04-20"
+author: "Ethan Peterson"
+date: "2023-04-24"
 title: "Screencast Pseudocode"
 output: html
 categories: project
 ---
+
+#For Topic 1: group_by() and summarise() datasets
+- I will create a grouping of the games played by 10 (1st-10th games in the regular season, 11th-19th games, 20th-29th games), and see which group has the largest uptick in goals made to see what part of the season sees the most goals, my first investigative agenda.
+- Using `group_by()` and `summarise()` to find the total count of players by each position in order to do the second investigative agenda, as well as summarising the total powerplay goals, regular goals,a nd shorthand goals.
+- Also using `group_by()` and `summarise()` to answer my third investigative agenda.
+```{r, error = T}
+#Specifically for first investigative idea
+library(tidyverse)
+# Create a new variable in the game_goals dataset that specifies the game group
+player_goals_grouped_custom <- game_goals %>%
+  mutate(game_group = case_when(
+    game_num %in% 1:10 ~ 1,
+    game_num %in% 11:20 ~ 2,
+    game_num %in% 21:30 ~ 3,
+    game_num %in% 31:40 ~ 4,
+    game_num %in% 41:50 ~ 5,
+    game_num %in% 51:60 ~ 6,
+    game_num %in% 61:70 ~ 7,
+    game_num %in% 71:80 ~ 8,
+    game_num %in% 81:82 ~ 9,
+    TRUE ~ NA_integer_)) 
+    # Any game that for some reason is over 82 (the amount of games in a season) is given NA.
+
+# Group the player_goals_grouped_custom dataset by game group and player, calculating the sum of goals for each group
+player_goals_grouped_sum_by_player <- player_goals_grouped_custom %>%
+  group_by(game_group, player) %>%
+  summarise(sum_goals = sum(goals))
+
+# Group the player_goals_grouped_sum_by_player dataset by game group, and calculate the sum of sum_goals for each group
+player_goals_grouped_sum <- player_goals_grouped_sum_by_player %>%
+  group_by(game_group) %>%
+  summarise(total_goals = sum(sum_goals))
+```
+
+
+#For Topic 2: create good charts
+- Creating a plot in `ggplot()` to help illustrate the differences found in goal types,, while sticking to the good chart principles learned in class.
+```{r, error = T}
+ggplot() +
+  geom_bar(data = "???", aes(x = "???", y = "???"), fill = "???")
+
+# This will be filled out much more in depth when I know what exact plots to make for each above
+```
+
+
+#For Topic 3: exploratory data analysis
+- I will see if I can do some sort of regression to see if there's a positive or negative correlation with types of goals whether they are home or away. I think it would be interesting to see (i.e., power-play goals are more common by home teams than away teams).
+- Subject to addition, as I may find something else interesting to do later on.
+```{r, error = T}
+#Regression psuedocode
+game_goals$win <- ifelse(game_goals$outcome == "W", 1, 0)
+
+model_home_away <- lm(penalty_min ~ points + goals + shots + plus_minus + win, data = na.omit(game_goals))
+
+summary(model_home_away)
+```
+
+
+#For Topic 4: working with strings
+Utilizing the `stringr` library, I will be doing something fun that isn't totally game-changing in terms of the game. I will be using `str_detect()` to count all of the vowels in the player names in the `game_goals` dataset. Then, I will group by the vowels and find out which grouping of vowels (whether the players have 2, 3, 4, 5, or 6 or more vowels in their names) to see which grouping has the largest sum of goals.
+
+```{r, error = T}
+library(stringr)
+library(tidyverse)
+
+# Count the number of vowels in each player name in the game_goals dataset
+game_goals_vowel_count <- game_goals %>%
+  mutate(vowel_count = str_count(tolower(player), "[aeiou]"))
+
+# Group players by the number of vowels and calculate the total goals scored for each group
+game_goals_vowel_sum <- game_goals_vowel_count %>%
+  group_by(vowel_count) %>%
+  summarise(total_goals = sum(goals))
+
+game_goals_vowel_sum
+```
 
