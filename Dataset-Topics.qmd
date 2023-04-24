@@ -12,11 +12,11 @@ Things you plan to investigate using this data set:
 
 - Is there a certain game or group of games (every 10) that see an uptick in goals?
 - Does a certain position score more power-play goals vs regular goals vs shorthand goals?
-- What age group has the most xth-goal seasons (30/40/50/60, etc)?
+- What age group has the most xth-goal seasons (x = 30/40/50/60, etc)?
 
 Stat 251 topics you plan to cover during the analysis:
 
-1. Mutating/filtering data sets
+1. Group_by() and summarise() data sets
 2. Creating good charts
 3. Exploratory data analysis (box plots/regression etc)
 4. Working with strings
