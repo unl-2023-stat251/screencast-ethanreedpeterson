@@ -1,6 +1,6 @@
 ---
 author: "Ethan Peterson"
-date: "2023-04-24"
+date: "2023-05-02"
 title: "Screencast Pseudocode"
 output: html
 categories: project
@@ -8,16 +8,30 @@ categories: project
 
 #For Topic 1: group_by() and summarise() datasets
 - I will create a grouping of the games played by 10 (1st-10th games in the regular season, 11th-19th games, 20th-29th games), and see which group has the largest uptick in goals made to see what part of the season sees the most goals, my first investigative agenda.
-- Using `group_by()` and `summarise()` to find the total count of players by each position in order to do the second investigative agenda, as well as summarising the total powerplay goals, regular goals,a nd shorthand goals.
+- Using `group_by()` and `summarise()` to find the total count of players by each position in order to do the second investigative agenda, as well as summarising the total powerplay goals, regular goals, and shorthand goals.
 - Also using `group_by()` and `summarise()` to answer my third investigative agenda.
+
+```{r}
+# Goals for each player and each game (only for players who started at or after 1979-80 season). This is due to limited game-level data prior to 1980.
+game_goals <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-03/game_goals.csv')
+
+# Top 250 in goals scored (up to 2020).
+top_250 <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-03/top_250.csv')
+
+# Season stats for each player (only for players who started at or after 1979-80 season).
+season_goals <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-03-03/season_goals.csv')
+```
+
+#Topic 1, part 1
 ```{r, error = T}
-#Specifically for first investigative idea
+# Load the library, Tidyverse (not great practice, but for this assignment, it will be okay).
 library(tidyverse)
+
 # Create a new variable in the game_goals dataset that specifies the game group
-player_goals_grouped_custom <- game_goals %>%
+grouped_game_goals <- game_goals %>%
   mutate(game_group = case_when(
-    game_num %in% 1:10 ~ 1,
-    game_num %in% 11:20 ~ 2,
+    game_num %in% 1:10 ~ 1,  # Says that for every game that appears within 1-10, will be group 1
+    game_num %in% 11:20 ~ 2, # Says that for every game that appears within 11-20, will be group 2, etc...
     game_num %in% 21:30 ~ 3,
     game_num %in% 31:40 ~ 4,
     game_num %in% 41:50 ~ 5,
@@ -25,28 +39,153 @@ player_goals_grouped_custom <- game_goals %>%
     game_num %in% 61:70 ~ 7,
     game_num %in% 71:80 ~ 8,
     game_num %in% 81:82 ~ 9,
-    TRUE ~ NA_integer_)) 
-    # Any game that for some reason is over 82 (the amount of games in a season) is given NA.
+    TRUE ~ NA_integer_)) # Some seasons featured 84-game seasons, we are ignoring those, and sticking with the regular 82-game schedule for this.
+    
 
-# Group the player_goals_grouped_custom dataset by game group and player, calculating the sum of goals for each group
-player_goals_grouped_sum_by_player <- player_goals_grouped_custom %>%
+# Group the grouped_game_goals dataset by game group and player, calculating the sum of goals for each group
+sum_grouped_game_goals <- grouped_game_goals %>%
   group_by(game_group, player) %>%
   summarise(sum_goals = sum(goals))
 
-# Group the player_goals_grouped_sum_by_player dataset by game group, and calculate the sum of sum_goals for each group
-player_goals_grouped_sum <- player_goals_grouped_sum_by_player %>%
+# Group the sum_grouped_game_goals dataset by game group, and calculate the sum of sum_goals for each group
+sum_grouped_game_goals_final <- sum_grouped_game_goals %>%
   group_by(game_group) %>%
   summarise(total_goals = sum(sum_goals))
+
+sum_grouped_game_goals_final <- sum_grouped_game_goals_final %>% 
+  filter(game_group < 10)
 ```
 
-
-#For Topic 2: create good charts
+#For Topic 2: create good charts (This is for topic 1, part 1)
 - Creating a plot in `ggplot()` to help illustrate the differences found in goal types,, while sticking to the good chart principles learned in class.
 ```{r, error = T}
 ggplot() +
-  geom_bar(data = "???", aes(x = "???", y = "???"), fill = "???")
+  geom_col(data = sum_grouped_game_goals_final, aes(x = game_group, y = total_goals), 
+           fill = sum_grouped_game_goals_final$game_group,
+           color = "black") +
+  
+  
+  scale_x_continuous(breaks=(seq(1, 9, 1)),
+                  limits = c(0, 10)) +
+  scale_y_continuous(breaks=(seq(0, 3000, 500)),
+                  limits = c(0, 3050),
+                  expand = c(0.1, 0.1)) +
+  
+  geom_text(data = sum_grouped_game_goals_final, aes(x = game_group, y = total_goals + 80, label = total_goals), 
+            size = 4, 
+            color = "black", 
+            family = "Courier") +
+  
+  labs(
+    title = "Total Goals by Game Group",
+    subtitle = "Since the 1980 season.",
+    caption = "Data: rfordatascience/tidytuesday || Chart by: Ethan Peterson",
+    x = "Game Group",
+    y = "Total Goals") + 
+  
+  theme(
+        # Title/Subtitle/Caption and legend
+        plot.title = element_text(hjust = .5, size = 20, family = "Courier", face = "bold", color = "black"),
+        plot.subtitle = element_text(hjust = .5, size = 12, family = "Courier", color = "grey15"),
+        plot.caption = element_text(hjust = .5, size = 10, family = "Courier", color = "grey15"),
+        text = element_text(family = "Courier"),
+        legend.position = "none",
+        # Plot background, panel grid, and lines
+        plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white"),
+        panel.grid.major.y = element_line(color = "gray90"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.line = element_line(colour = "white"),
+        panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
+        # Axis titles and axis text
+        axis.title.x = element_text(colour = "grey15", size = 15, face = "bold"),
+        axis.title.y = element_text(colour = "grey15", size = 15, face = "bold"),
+        axis.text.x = element_text(colour = "grey15", size = 12),
+        axis.text.y = element_text(colour = "grey15", size = 12))
 
-# This will be filled out much more in depth when I know what exact plots to make for each above
+```
+
+#Topic 1, Part 2
+```{r}
+position_normalized_goals <- season_goals %>%
+  filter(position %in% c("C", "RW", "LW", "D")) %>% # For some reason, some players' positions are not listed (35% of the data), we are taking them out, position is a necessity
+  group_by(position) %>%
+  summarise(
+    total_powerplay_goals = sum(goals_power_play, na.rm = TRUE),
+    total_shorthand_goals = sum(goals_short_handed, na.rm = TRUE),
+    total_regular_goals = sum(goals_even, na.rm = TRUE),
+    total_game_winning_goals = sum(goals_game_winner, na.rm = TRUE),
+    total_goals = sum(goals, na.rm = TRUE)
+  ) %>%
+  mutate(
+    powerplay_goal_pct = total_powerplay_goals / total_goals * 100,
+    shorthand_goal_pct = total_shorthand_goals / total_goals * 100,
+    regular_goal_pct = total_regular_goals / total_goals * 100,
+    game_winning_goal_pct = total_game_winning_goals / total_goals * 100
+  ) %>%
+  select(position, total_goals, powerplay_goal_pct, shorthand_goal_pct, regular_goal_pct, game_winning_goal_pct)
+
+print(position_normalized_goals)
+```
+
+# Further data reshaping
+```{r}
+# Reshape the data frame from wide to long format
+long_normalized_goals <- position_normalized_goals %>%
+  pivot_longer(
+    cols = c(powerplay_goal_pct, shorthand_goal_pct, regular_goal_pct, game_winning_goal_pct),
+    names_to = "goal_type",
+    values_to = "goal_pct")
+```
+
+
+#For Topic 2: create good charts (This is for topic 1, part 2)
+```{r}
+ggplot(long_normalized_goals, aes(x = position, y = goal_pct, fill = goal_type)) +
+  geom_col(position = "dodge") +
+  
+   scale_y_continuous(breaks=(seq(0, 100, 20)),
+                  limits = c(0, 100),
+                  expand = c(0.1, 0.1)) +
+  
+  geom_text(aes(label = round(goal_pct, 1)),
+            position = position_dodge(width = 0.9),
+            vjust = -0.5,
+            size = 3) +
+  
+  labs(
+    title = "Goal Type Percentages by Position",
+    subtitle = "Center (C), Defenseman (D), Left Wing (LW), and Right Wing (RW).",
+    caption = "Data: rfordatascience/tidytuesday || Chart by: Ethan Peterson",
+    x = "Position",
+    y = "Goal Percentage", 
+    fill = "Goal Type") + 
+  scale_fill_manual(values = c("powerplay_goal_pct" = "blue", "shorthand_goal_pct" = "orange", "regular_goal_pct" = "gray", "game_winning_goal_pct" = "grey20"),
+                    labels = c("powerplay_goal_pct" = "Powerplay Goals", "shorthand_goal_pct" = "Shorthand Goals", "regular_goal_pct" = "Even-Strength Goals", "game_winning_goal_pct" = "Game-Winning Goals")) +
+  
+  theme(
+        # Title/Subtitle/Caption and legend
+        plot.title = element_text(hjust = .5, size = 18, family = "Courier", face = "bold", color = "black"),
+        plot.subtitle = element_text(hjust = .5, size = 10, family = "Courier", color = "grey15"),
+        plot.caption = element_text(hjust = .5, size = 10, family = "Courier", color = "grey15"),
+        text = element_text(family = "Courier"),
+        legend.position = "right",
+        # Plot background, panel grid, and lines
+        plot.background = element_rect(fill="white"),
+        panel.background = element_rect(fill="white"),
+        panel.grid.major.y = element_line(color = "gray90"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.line = element_line(colour = "white"),
+        panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
+        # Axis titles and axis text
+        axis.title.x = element_text(colour = "grey15", size = 15, face = "bold"),
+        axis.title.y = element_text(colour = "grey15", size = 15, face = "bold"),
+        axis.text.x = element_text(colour = "grey15", size = 12),
+        axis.text.y = element_text(colour = "grey15", size = 12))
 ```
 
 
@@ -54,7 +193,7 @@ ggplot() +
 - I will see if I can do some sort of regression to see if there's a positive or negative correlation with types of goals whether they are home or away. I think it would be interesting to see (i.e., power-play goals are more common by home teams than away teams).
 - Subject to addition, as I may find something else interesting to do later on.
 ```{r, error = T}
-#Regression psuedocode
+#Regression 
 game_goals$win <- ifelse(game_goals$outcome == "W", 1, 0)
 
 model_home_away <- lm(penalty_min ~ points + goals + shots + plus_minus + win, data = na.omit(game_goals))
@@ -70,15 +209,57 @@ Utilizing the `stringr` library, I will be doing something fun that isn't totall
 library(stringr)
 library(tidyverse)
 
-# Count the number of vowels in each player name in the game_goals dataset
+library(dplyr)
+
+# Calculate vowel count for each player and summarize total goals
 game_goals_vowel_count <- game_goals %>%
-  mutate(vowel_count = str_count(tolower(player), "[aeiou]"))
+  mutate(vowel_count = str_count(tolower(player), "[aeiouy]")) %>%
+  group_by(player, vowel_count) %>%
+  summarise(total_goals = sum(goals), .groups = 'drop')
 
-# Group players by the number of vowels and calculate the total goals scored for each group
-game_goals_vowel_sum <- game_goals_vowel_count %>%
+print(game_goals_vowel_count)
+
+# Find the player with the most goals for each individual vowel count
+top_players_by_vowel_count <- game_goals_vowel_count %>%
   group_by(vowel_count) %>%
-  summarise(total_goals = sum(goals))
+  slice_max(order_by = total_goals, n = 1)
 
-game_goals_vowel_sum
+print(top_players_by_vowel_count)
+
+```
+
+#Separating the Age into Year and Day
+```{r}
+game_goals2 <- game_goals %>% 
+  separate(age, into = c("year", "day"), sep = "-")
+```
+
+
+```{r}
+# Calculate total goals for each player in each season
+player_season_goals <- game_goals2 %>%
+  group_by(player, year) %>%
+  summarise(total_goals = sum(goals), .groups = "drop")
+
+# Convert the 'year' column to numeric
+player_season_goals$year <- as.numeric(player_season_goals$year)
+
+# Filter the seasons where a player scored x goals or more (x = 30/40/50/60, etc.)
+xth_goal_threshold <- 30 # I will change this to the desired threshold (e.g., 40, 50, 60, etc.)
+
+xth_goal_seasons <- player_season_goals %>%
+  filter(total_goals >= xth_goal_threshold)
+
+# Create age groups with 5-year intervals
+xth_goal_seasons <- xth_goal_seasons %>%
+  mutate(age_group = cut(year, breaks = seq(min(year), max(year), by = 5), include.lowest = TRUE, right = FALSE))
+
+# Group the data by age group and count the number of xth-goal seasons for each age group
+age_group_counts <- xth_goal_seasons %>%
+  group_by(age_group) %>%
+  summarise(count_xth_goal_seasons = n())
+
+print(age_group_counts)
+
 ```
 
