@@ -6,6 +6,8 @@ output: html
 categories: project
 ---
 
+[LINK TO VIDEO](https://youtu.be/fssGkqkJ9q8)
+
 #For Topic 1: group_by() and summarise() datasets
 - I will create a grouping of the games played by 10 (1st-10th games in the regular season, 11th-19th games, 20th-29th games), and see which group has the largest uptick in goals made to see what part of the season sees the most goals, my first investigative agenda.
 - Using `group_by()` and `summarise()` to find the total count of players by each position in order to do the second investigative agenda, as well as summarising the total powerplay goals, regular goals, and shorthand goals.
